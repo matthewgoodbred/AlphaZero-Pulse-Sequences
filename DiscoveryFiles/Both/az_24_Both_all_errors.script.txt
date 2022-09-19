@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Name of the job
+#SBATCH --job-name=az_24_Both_all_errors
+
+#SBATCH -o %j_out.txt
+#SBATCH -e %j_err.txt
+
+# Number of compute nodes
+#SBATCH --nodes=1
+
+# Number of tasks per node
+#SBATCH --ntasks-per-node=1
+
+# Number of CPUs per task
+#SBATCH --cpus-per-task=16
+
+# Request memory
+#SBATCH --mem=32G
+
+# Walltime (job duration)
+#SBATCH --time=48:00:00
+
+# Email notifications (comma-separated options: BEGIN,END,FAIL)
+#SBATCH --mail-type=ALL
+
+source activate trial_env
+
+python -u run_alpha_zero_general_OE_Both_24.py
