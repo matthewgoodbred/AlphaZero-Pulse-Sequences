@@ -40,7 +40,7 @@ import datetime
 #     2, 2, 3, 3, 2, 3, 3, 3, 2, 3, 3, 2,
 #     1, 4, 4, 1, 4, 4, 4, 2, 2, 4, 2, 2
 # ]
-
+pulse_list = [['D'],  ['X'], ['-X'], ['Y'], ['-Y']]
 
 def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig=False, granular=False, compare=None,
                 folder=None, delay=None, pulse_width=None):
@@ -140,7 +140,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
                                                rot_error=rot_error,
                                                phase_transient_error=0,
                                                offset_error=0,
-                                               pulse_list=[['D'],  ['X'], ['-X'], ['Y'], ['-Y']],
+                                               pulse_list=pulse_list,
                                                stochastic=False)
 
             for idx, sequence in enumerate(pulse_sequences_orig):
