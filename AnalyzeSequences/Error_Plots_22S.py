@@ -427,6 +427,7 @@ print(len(4*CORY48), len(12*yxx24), len(8*SED24), len(4*SED48), len(2*SED96))
 print(SED24)
 print(SED48)
 print(SED96)
+#print(SED96)
 
 # # Great offset robustness
 # (12 * [1, 1, 4, 1, 1, 2, 2, 4, 3, 3, 2, 3, 4, 2, 3, 3, 3, 1, 4, 4, 2, 2, 4, 1], 'New'),
@@ -440,7 +441,6 @@ error_plots([(4 * CORY48, 'CORY48'),
              (2 * SED96, 'SED96'),
              ],
             'all',
-            show_fig=True, save_fig=False, granular=True, pulse_width=0, folder=folder, name='CB_Best')
 
 az_all_err_12 = [
     4, 2, 3, 3, 2, 3, 3, 2, 4, 4, 2, 4
