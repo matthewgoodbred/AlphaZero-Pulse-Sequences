@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import StrMethodFormatter
 import string       # For making a list of names
 import datetime
-
+from Convert import convert
 # yxx24 = [4, 1, 2, 3, 2, 2, 3, 2, 1, 4, 1, 1, 3, 2, 1, 4, 1, 1, 4, 1, 2, 3, 2, 2]        # 24 tau: 6.43; 288 tau: 4.32
 # angle12 = [4, 1, 2, 3, 2, 2, 4, 1, 2, 3, 1, 1]      # 12 tau: 6.02; 288 tau: 3.29
 # PW12 = [4, 2, 2, 1, 1, 3, 2, 2, 4, 3, 1, 1]         # 12 tau: 5.98; 288 tau: 3.18
@@ -40,6 +40,11 @@ import datetime
 #     2, 2, 3, 3, 2, 3, 3, 3, 2, 3, 3, 2,
 #     1, 4, 4, 1, 4, 4, 4, 2, 2, 4, 2, 2
 # ]
+
+# SED
+#pulse_list = [['X', 'Y', 'D'], ['X', '-Y', 'D'], ['-X', 'Y', 'D'], ['-X', '-Y', 'D'],
+#              ['Y', 'X', 'D'], ['Y', '-X', 'D'], ['-Y', 'X', 'D'], ['-Y', '-X', 'D']]
+# Primitive 
 pulse_list = [['D'],  ['X'], ['-X'], ['Y'], ['-Y']]
 
 def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig=False, granular=False, compare=None,
@@ -119,6 +124,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
         tau_lengths = np.logspace(-7, -4, 30)  # Original Values: -3.8, -2.8, 30 todo need to play around with this
 
     pulse_sequences_orig, labels = [], []
+    #Load desired pulse sequences into pulse_sequence_orig array and labels into labels array
     for pulse_sequence in pulse_sequences:
         pulse_sequence_orig = pulse_sequence[0]
 
@@ -181,6 +187,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
             sequences_rewards.append([])
 
         for phase_transient_error in ptes:
+            #Creat pulse sequence config object to run the simulation with specific error 
             ps_config = ps.PulseSequenceConfig(Utarget=Utarget, N=N,
                                                ensemble_size=1,
                                                max_sequence_length=len(pulse_sequences_orig[0]),
@@ -189,7 +196,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
                                                rot_error=0,
                                                phase_transient_error=phase_transient_error,
                                                offset_error=0,
-                                               pulse_list=[['D'],  ['X'], ['-X'], ['Y'], ['-Y']],
+                                               pulse_list=pulse_list,
                                                stochastic=False)
 
             for idx, sequence in enumerate(pulse_sequences_orig):
@@ -240,7 +247,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
                                                rot_error=0,
                                                phase_transient_error=0,
                                                offset_error=offset_error,
-                                               pulse_list=[['D'],  ['X'], ['-X'], ['Y'], ['-Y']],
+                                               pulse_list=pulse_list,
                                                stochastic=False)
 
             for idx, sequence in enumerate(pulse_sequences_orig):
@@ -421,26 +428,35 @@ e = [3, 2, 0, 2, 3, 0, 1, 3, 0, 2, 3, 0, 3, 2, 0, 3, 1, 0, 4, 1, 0, 3, 1, 0, 4, 
 #             'angle',
 #             show_fig=True, save_fig=False, granular=True, pulse_width=0)
 
+test_SE =  [4,	6	,1,	3,	2,	5,	4,	5,	2,	3,	1,	 6] # in SED action space 
+test_0 = convert(test_SE,'SED','O')
+
+#test_0 =  [3,1,0,	4,1,0	,1,4,0,	2,4,0,	2,3,0,	3,2,0,	3,1,0,	3,2,0,	2,3,0,	2,4,0,	1,3,0,	 4,1,0] # in primitive action space 
+
 SED24 = i
 
-print(len(4*CORY48), len(12*yxx24), len(8*SED24), len(4*SED48), len(2*SED96))
-print(SED24)
-print(SED48)
-print(SED96)
+#print(len(4*CORY48), len(12*yxx24), len(8*SED24), len(4*SED48), len(2*SED96))
+#print(SED24)
+#print(SED48)
 #print(SED96)
 
 # # Great offset robustness
 # (12 * [1, 1, 4, 1, 1, 2, 2, 4, 3, 3, 2, 3, 4, 2, 3, 3, 3, 1, 4, 4, 2, 2, 4, 1], 'New'),
 #              (4 * [4, 2, 0, 4, 1, 0, 1, 3, 0, 1, 3, 0, 1, 3, 0, 4, 2, 0, 4, 2, 0, 2, 4, 0, 2, 4, 0, 1, 4, 0, 4, 1, 0, 3, 1, 0, 2, 3, 0, 2, 3, 0, 2, 4, 0, 1, 4, 0, 1, 4, 0, 3, 1, 0, 3, 1, 0, 3, 2, 0, 3, 2, 0, 4, 1, 0, 3, 2, 0, 2, 3, 0], 'New2')
 
-folder = '/Users/oweneskandari/PycharmProjects/21X/rl_pulse/22S/Thesis_Plots_All/Best/'
-error_plots([(4 * CORY48, 'CORY48'),
-             (12 * yxx24, 'yxx24'),
-             (8 * SED24, 'SED24'),
-             (4 * SED48, 'SED48'),
-             (2 * SED96, 'SED96'),
+folder = '/Users/admin/Desktop/RL Hamiltonian/OwenE'
+#error_plots([(4 * CORY48, 'CORY48'),
+#             (12 * yxx24, 'yxx24'),
+#             (8 * SED24, 'SED24'),
+#             (4 * SED48, 'SED48'),
+#             (2 * SED96, 'SED96'),
+#             ],
+#            'all',
+#            show_fig=True, save_fig=False, granular=True, pulse_width=0, folder=folder, name='CB_Best')
+error_plots([(4*test_0, 'test'),(3*CORY48,'CORY48'),
              ],
             'all',
+            show_fig=True, save_fig=False, granular=False, pulse_width=0, folder=folder, name='CB_Best')
 
 az_all_err_12 = [
     4, 2, 3, 3, 2, 3, 3, 2, 4, 4, 2, 4
