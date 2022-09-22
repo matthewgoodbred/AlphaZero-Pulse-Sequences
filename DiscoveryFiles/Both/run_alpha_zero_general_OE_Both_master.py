@@ -36,7 +36,7 @@ max_sequence_length = 24
 
 print_every = 100
 save_every = 100
-write_every = 100    # Write count_dict and reward_dict to files every x iterations (usually int(1e4))
+write_every = 100   # Write count_dict and reward_dict to files every x iterations (usually int(1e4))
 
 reward_threshold = 3		# Something to consider upping/lowering depending on run (originally 3)
 
@@ -57,11 +57,12 @@ Utarget = qt.identity([2] * N)
 #               ['Y', 'X'], ['Y', '-X'], ['-Y', 'X'], ['-Y', '-X']]
 
 # Both Pulse List (SE and solid echo + delay; the building blocks of CORY48)
-pulse_list = [['D'], ['X', 'Y'], ['X', '-Y'], ['-X', 'Y'], ['-X', '-Y'],
-              ['Y', 'X'], ['Y', '-X'], ['-Y', 'X'], ['-Y', '-X'],
-              ['X', 'Y', 'D'], ['X', '-Y', 'D'], ['-X', 'Y', 'D'], ['-X', '-Y', 'D'],
-              ['Y', 'X', 'D'], ['Y', '-X', 'D'], ['-Y', 'X', 'D'], ['-Y', '-X', 'D']]
-
+#pulse_list = [['D'], ['X', 'Y'], ['X', '-Y'], ['-X', 'Y'], ['-X', '-Y'],
+#              ['Y', 'X'], ['Y', '-X'], ['-Y', 'X'], ['-Y', '-X'],
+#              ['X', 'Y', 'D'], ['X', '-Y', 'D'], ['-X', 'Y', 'D'], ['-X', '-Y', 'D'],
+#              ['Y', 'X', 'D'], ['Y', '-X', 'D'], ['-Y', 'X', 'D'], ['-Y', '-X', 'D']]
+pulse_list = [['X', 'Y', 'D'], ['X', '-Y', 'D'], ['-X', 'Y', 'D'], ['-X', '-Y', 'D'],
+                ['Y', 'X', 'D'], ['Y', '-X', 'D'], ['-Y', 'X', 'D'], ['-Y', '-X', 'D']]
 # Can only be one type of delay, otherwise check get_valid_pulses() and augment accordingly
 # pulse_list = [['D'], ['X'], ['-X'], ['Y'], ['-Y']]
 
@@ -74,7 +75,7 @@ def collect_data(proc_num, queue, net, ps_count, global_step, lock, pulse_list):
         ps_count (Value): A shared count of how many pulse sequences have been
             constructed so far
     """
-
+    
     print(datetime.now(), f"collecting data ({proc_num})")
     config = az.Config()
     config.pb_c_init = 4       # Subject to change (start off with the original exploration value)
@@ -94,6 +95,10 @@ def collect_data(proc_num, queue, net, ps_count, global_step, lock, pulse_list):
                                   max_difference=2) #, refocus_every=6		# For now, no constraints!
 
         reward = out_info[-1]  # This value is not rounded; to be used in histogram
+
+        rewards_plot.append(reward)
+        iters_plot.append(global_step.value)
+
         if out_info[-1] > reward_threshold:
             out_info[-1] = np.round(out_info[-1], 2)    # This value is rounded; to be used in output
             print(datetime.now(),
@@ -181,8 +186,13 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
     tmp = torch.zeros((1, 10, len(pulse_list) + 1))
     writer.add_graph(net, tmp)
     del tmp
-    
+
+    # Make figures for plotting 
+    fig1 , ax1 = plt.subplots()
+    fig2 , (ax2,ax3) = plt.subplots(2)
+
     while global_step.value < num_iters:
+        running_loss = 0.0
         # get stats from queue
         with lock:
             while not queue.empty():
@@ -201,11 +211,13 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
             sleep(5)
             continue
 
+        # check whether to save the NN 
         if i % save_every == 0:
             print(datetime.now(), 'saving network...')
             torch.save(net.state_dict(),
                        f'{start_time}/network/{i:07.0f}')
 
+            #check whether to dump pulse sequences and save scatterplot 
             if i % write_every == 0:
 
                 # Writing dictionaries (and appropriate action space to decode keys) to output files
@@ -218,17 +230,36 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
                         f.write(json.dumps(pulse_list))
                     f.write(json.dumps(reward_dict.copy()))
 
-                # Making and saving a plot of frequency per pulse sequence
-                # Scatter plot
+                # Making and saving pulse sequence frequency scatterplot
                 try:
-                    plt.scatter([reward_dict[ps] for ps in reward_dict.keys()], [count_dict[ps] for ps in count_dict.keys()])
-                    plt.yscale('log')
-                    plt.title("Pulse Sequence Frequencies")     # Title
-                    plt.ylabel("Count")     # Y axis is number of times each pulse sequence has appeared
-                    plt.xlabel("Reward")    # X axis is reward associated with each pulse sequence
+                    ax1.clear()
+                    ax1.scatter([reward_dict[ps] for ps in reward_dict.keys()], [count_dict[ps] for ps in count_dict.keys()])
+                    ax1.set_yscale('log')
+                    ax1.set_title("Pulse Sequence Frequencies")     # Title
+                    ax1.set_ylabel("Count")     # Y axis is number of times each pulse sequence has appeared
+                    ax1.set_xlabel("Reward")    # X axis is reward associated with each pulse sequence
                     # Save the plot
-                    plt.savefig(f'{start_time}/histograms/Rewards_by_sequence_Histogram_' + str(i) + '_Iterations')
+                    fig1.savefig(f'{start_time}/histograms/Rewards_by_sequence_Histogram_' + str(i) + '_Iterations')
                     plt.close()
+                except ValueError:
+                    print('ValueError: x and y must be the same size')
+                    print('Size of x axis: ' + str(len([reward_dict[ps] for ps in reward_dict.keys()])))
+                    print('Size of y axis: ' + str(len([count_dict[ps] for ps in count_dict.keys()])))
+
+
+                # Plot rewards and losses, over iterations
+
+                try:
+                    ax2.clear()
+                    ax3.clear()
+                    ax2.plot(iters_plot,rewards_plot,'tab:orange')
+                    ax2.set_ylabel("Rewards")
+                    ax2.set_xlabel("Iteration")
+                    ax3.plot(iters_plot2,losses_plot,'tab:cyan')
+                    ax3.set_ylabel("Loss")
+                    ax3.set_xlabel("Iteration")
+                    fig2.savefig(f'{start_time}/histograms/Rewards_time' + str(i) + '_Iterations.png')
+
                 except ValueError:
                     print('ValueError: x and y must be the same size')
                     print('Size of x axis: ' + str(len([reward_dict[ps] for ps in reward_dict.keys()])))
@@ -251,6 +282,10 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
         for param in net.parameters():
             l2_reg += torch.norm(param)
         loss = policy_loss + c_value * value_loss + c_l2 * l2_reg
+        running_loss = loss.item()
+        losses_plot.append(running_loss)
+        iters_plot2.append(global_step.value)
+        print('loss '+str(running_loss))
         loss.backward()
         net_optimizer.step()
 
@@ -292,13 +327,10 @@ if __name__ == '__main__':
         reward_dict = manager.dict()
         count_dict = manager.dict()
 
-        if 'reward_dict' in locals():
-            print("local")
-        elif 'reward_dict' in globals():
-            print("global")
-        else:
-            print("nowhere")    
-        
+        rewards_plot = manager.list() #pulse sequence reward for plotting
+        iters_plot = manager.list() #number of iterations for plotting 
+        losses_plot = manager.list()
+        iters_plot2 = manager.list() #number of iterations for plotting 
 
         net = az.Network(input_size=len(pulse_list) + 1, policy_output_size=len(pulse_list))    # Correct action space
         # optionally load state dict
