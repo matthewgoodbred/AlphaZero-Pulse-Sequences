@@ -32,7 +32,7 @@ buffer_size = int(1e6)
 batch_size = 2048   #2048
 num_iters = int(1e6)
 
-max_sequence_length = 24
+max_sequence_length = 36
 
 print_every = 100
 save_every = 100
@@ -167,6 +167,8 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
         os.makedirs(start_time)
     writer = SummaryWriter(start_time)
     net_optimizer = optim.Adam(net.parameters(),)
+    # learning rate scheduler 
+    scheduler = optim.lr_scheduler.OneCycleLR(net_optimizer,max_lr=0.1,total_steps=num_iters)
 
     buffer = []
     index = 0
@@ -285,10 +287,11 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
         running_loss = loss.item()
         losses_plot.append(running_loss)
         iters_plot2.append(global_step.value)
-        print('loss '+str(running_loss))
+        #print('loss '+str(running_loss))
         loss.backward()
         net_optimizer.step()
-
+        #lrs.append(net_optimizer.param_groups[0]["lr"]) 
+        scheduler.step()
         writer.add_scalar('training_policy_loss',
                           policy_loss, global_step=global_step.value)
         writer.add_scalar('training_value_loss',
@@ -311,7 +314,6 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
         i += 1
         sleep(.1)
 
-
 if __name__ == '__main__':
     with mp.Manager() as manager:
         queue = manager.Queue()
@@ -331,7 +333,7 @@ if __name__ == '__main__':
         iters_plot = manager.list() #number of iterations for plotting 
         losses_plot = manager.list()
         iters_plot2 = manager.list() #number of iterations for plotting 
-
+    
         net = az.Network(input_size=len(pulse_list) + 1, policy_output_size=len(pulse_list))    # Correct action space
         # optionally load state dict
         # change global_step above too...
