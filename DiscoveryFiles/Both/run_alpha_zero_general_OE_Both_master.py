@@ -30,7 +30,7 @@ collect_procs = 3                       # TODO
 
 buffer_size = int(1e6)
 batch_size = 2048   #2048
-num_iters = int(1e6)
+num_iters = int(1e3)
 
 max_sequence_length = 36
 
