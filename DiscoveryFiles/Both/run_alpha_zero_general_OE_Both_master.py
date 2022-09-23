@@ -57,14 +57,18 @@ Utarget = qt.identity([2] * N)
 #               ['Y', 'X'], ['Y', '-X'], ['-Y', 'X'], ['-Y', '-X']]
 
 # Both Pulse List (SE and solid echo + delay; the building blocks of CORY48)
-#pulse_list = [['D'], ['X', 'Y'], ['X', '-Y'], ['-X', 'Y'], ['-X', '-Y'],
-#              ['Y', 'X'], ['Y', '-X'], ['-Y', 'X'], ['-Y', '-X'],
-#              ['X', 'Y', 'D'], ['X', '-Y', 'D'], ['-X', 'Y', 'D'], ['-X', '-Y', 'D'],
-#              ['Y', 'X', 'D'], ['Y', '-X', 'D'], ['-Y', 'X', 'D'], ['-Y', '-X', 'D']]
-pulse_list = [['X', 'Y', 'D'], ['X', '-Y', 'D'], ['-X', 'Y', 'D'], ['-X', '-Y', 'D'],
+SE_SED_list = [['D'], ['X', 'Y'], ['X', '-Y'], ['-X', 'Y'], ['-X', '-Y'],
+              ['Y', 'X'], ['Y', '-X'], ['-Y', 'X'], ['-Y', '-X'],
+              ['X', 'Y', 'D'], ['X', '-Y', 'D'], ['-X', 'Y', 'D'], ['-X', '-Y', 'D'],
+              ['Y', 'X', 'D'], ['Y', '-X', 'D'], ['-Y', 'X', 'D'], ['-Y', '-X', 'D']]
+SED_list = [['X', 'Y', 'D'], ['X', '-Y', 'D'], ['-X', 'Y', 'D'], ['-X', '-Y', 'D'],
                 ['Y', 'X', 'D'], ['Y', '-X', 'D'], ['-Y', 'X', 'D'], ['-Y', '-X', 'D']]
+yxx_list = [['Y','X','X'],['Y','-X','X'],['Y','X','-X'],['Y','-X','-X'],
+            ['-Y','X','X'],['-Y','-X','X'],['-Y','X','-X'],['-Y','-X','-X']]
+SED_yxx_list = SED_list+yxx_list
 # Can only be one type of delay, otherwise check get_valid_pulses() and augment accordingly
-# pulse_list = [['D'], ['X'], ['-X'], ['Y'], ['-Y']]
+original_pulse_list = [['D'], ['X'], ['-X'], ['Y'], ['-Y']]
+pulse_list = SED_yxx_list
 
 
 def collect_data(proc_num, queue, net, ps_count, global_step, lock, pulse_list):
@@ -296,8 +300,10 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
                           policy_loss, global_step=global_step.value)
         writer.add_scalar('training_value_loss',
                           c_value * value_loss, global_step=global_step.value)
-        writer.add_scalar('training_l2_reg',
+        writer.add_scalar('L2_reg_loss',
                           c_l2 * l2_reg, global_step=global_step.value)
+        writer.add_scalar('total Loss',
+                          loss, global_step=global_step.value)
 
         if i % print_every == 0:
             print(datetime.now(), f'updated network (iteration {i})',
