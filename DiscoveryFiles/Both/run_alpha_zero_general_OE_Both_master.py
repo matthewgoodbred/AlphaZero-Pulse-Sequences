@@ -1,6 +1,4 @@
-# Added histogram interface 2/3
-# Ran into issues with histogram interface 2/7...added try statements to work around for now; come back later
-
+from cmath import isnan
 from datetime import datetime
 import random
 from time import sleep
@@ -26,22 +24,22 @@ import pulse_sequences_general as ps     # TODO
 
 collect_no_net_procs = 0
 collect_no_net_count = 0
-collect_procs = 3                       # TODO
+collect_procs = 14                       # TODO
 
 buffer_size = int(1e6)
 batch_size = 2048   #2048
-num_iters = int(1e3)
+num_iters = int(1e5)
 
-max_sequence_length = 36
+max_sequence_length = 48
 
 print_every = 100
 save_every = 100
 write_every = 100   # Write count_dict and reward_dict to files every x iterations (usually int(1e4))
 
-reward_threshold = 3		# Something to consider upping/lowering depending on run (originally 3)
+reward_threshold = 4		# Something to consider upping/lowering depending on run (originally 3)
 
 dipolar_strength = 1e2		# Something to consider changing
-pulse_width = 2e-5
+pulse_width = 2e-5 #2e-5  #change pulse width vs delay 
 delay = 1e-4
 N = 3
 ensemble_size = 50
@@ -68,7 +66,7 @@ yxx_list = [['Y','X','X'],['Y','-X','X'],['Y','X','-X'],['Y','-X','-X'],
 SED_yxx_list = SED_list+yxx_list
 # Can only be one type of delay, otherwise check get_valid_pulses() and augment accordingly
 original_pulse_list = [['D'], ['X'], ['-X'], ['Y'], ['-Y']]
-pulse_list = SED_yxx_list
+pulse_list = SED_list
 
 
 def collect_data(proc_num, queue, net, ps_count, global_step, lock, pulse_list):
@@ -172,7 +170,7 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
     writer = SummaryWriter(start_time)
     net_optimizer = optim.Adam(net.parameters(),)
     # learning rate scheduler 
-    scheduler = optim.lr_scheduler.OneCycleLR(net_optimizer,max_lr=0.1,total_steps=num_iters)
+    scheduler = optim.lr_scheduler.OneCycleLR(net_optimizer,max_lr=1e-2,total_steps=num_iters,div_factor=10)
 
     buffer = []
     index = 0
@@ -195,7 +193,7 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
 
     # Make figures for plotting 
     fig1 , ax1 = plt.subplots()
-    fig2 , (ax2,ax3) = plt.subplots(2)
+    fig2 , ax2 = plt.subplots()
 
     while global_step.value < num_iters:
         running_loss = 0.0
@@ -257,19 +255,16 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
 
                 try:
                     ax2.clear()
-                    ax3.clear()
                     ax2.plot(iters_plot,rewards_plot,'tab:orange')
                     ax2.set_ylabel("Rewards")
                     ax2.set_xlabel("Iteration")
-                    ax3.plot(iters_plot2,losses_plot,'tab:cyan')
-                    ax3.set_ylabel("Loss")
-                    ax3.set_xlabel("Iteration")
                     fig2.savefig(f'{start_time}/histograms/Rewards_time' + str(i) + '_Iterations.png')
 
                 except ValueError:
                     print('ValueError: x and y must be the same size')
                     print('Size of x axis: ' + str(len([reward_dict[ps] for ps in reward_dict.keys()])))
                     print('Size of y axis: ' + str(len([count_dict[ps] for ps in count_dict.keys()])))
+                    print('NaN in reward dict: '+str(isnan([reward_dict[ps] for ps in reward_dict.keys()])))
 
         net_optimizer.zero_grad()
 
@@ -296,15 +291,16 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
         net_optimizer.step()
         #lrs.append(net_optimizer.param_groups[0]["lr"]) 
         scheduler.step()
-        writer.add_scalar('training_policy_loss',
+        writer.add_scalar('policy_loss',
                           policy_loss, global_step=global_step.value)
-        writer.add_scalar('training_value_loss',
+        writer.add_scalar('value_loss',
                           c_value * value_loss, global_step=global_step.value)
         writer.add_scalar('L2_reg_loss',
                           c_l2 * l2_reg, global_step=global_step.value)
-        writer.add_scalar('total Loss',
+        writer.add_scalar('total_loss',
                           loss, global_step=global_step.value)
-
+        writer.add_scalar('learning_rate',
+                          net_optimizer.lr, global_step=global_step.value)
         if i % print_every == 0:
             print(datetime.now(), f'updated network (iteration {i})',
                   f'pulse_sequence_count: {ps_count.value}')

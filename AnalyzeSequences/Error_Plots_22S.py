@@ -270,7 +270,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
         plt.yticks(fontsize=12)
         plt.xlabel('Fractional Offset error (relative to chemical shift strength)', fontsize=12)
         plt.ylabel('Reward', fontsize=12)
-        plt.title("Reward over 288" + r'$\tau$', fontsize=14)
+        plt.title("Reward over 144" + r'$\tau$', fontsize=14)
         plt.legend(labels, fontsize=12)
         if save_fig:
             if name and folder:
@@ -305,7 +305,7 @@ ps_1259819_72_SED_15144 = [4, 1, 0, 3, 1, 0, 1, 3, 0, 1, 3, 0, 2, 4, 0, 1, 3, 0,
 
 
 no_err_trial = [2, 4, 2, 3, 2, 4, 3, 1, 4, 1, 1, 4, 3, 2, 3, 1, 1, 3, 4, 2, 3, 2, 4, 2]
-print(len(no_err_trial))
+#print(len(no_err_trial))
 
 # Sequences with maxed out fidelities
 best1 = [2, 4, 2, 3, 2, 4, 3, 1, 4, 1, 1, 4, 3, 2, 3, 1, 1, 3, 4, 2, 3, 2, 4, 2]
@@ -313,7 +313,7 @@ best2 = [3, 2, 4, 2, 4, 2, 2, 4, 1, 4, 1, 3, 3, 1, 3, 1, 2, 3, 3, 2, 4, 1, 1, 3]
 best3 = [4, 2, 3, 2, 2, 4, 2, 3, 2, 4, 3, 2, 3, 1, 4, 1, 1, 3, 4, 1, 3, 1, 1, 3]
 best4 = [4, 2, 3, 2, 4, 2, 2, 4, 2, 3, 2, 4, 3, 1, 4, 1, 1, 3, 4, 1, 3, 1, 1, 3]
 best5 = [4, 2, 3, 2, 2, 4, 2, 3, 2, 4, 3, 2, 2, 3, 1, 3, 3, 1, 1, 3, 1, 4, 4, 1]
-print(len(best1))
+#print(len(best1))
 
 
 SED_2 = [3, 1, 0, 1, 3, 0, 2, 3, 0, 1, 3, 0, 3, 1, 0, 3, 2, 0, 4, 2, 0, 1, 4, 0, 2, 4, 0, 1, 4, 0, 4, 2, 0, 4, 1, 0,
@@ -335,7 +335,7 @@ ps_2032111_72_SED_91958 = [3, 2, 0, 4, 1, 0, 1, 4, 0, 2, 4, 0, 1, 3, 0, 3, 2, 0,
 comp = [2, 4, 0, 2, 3, 0, 2, 3, 0, 4, 2, 0, 3, 2, 0, 4, 2, 0, 1, 3, 0, 1, 4, 0, 1, 4, 0, 3, 1, 0, 4, 1, 0, 3, 1, 0, 2, 4, 0, 2, 3, 0, 2, 3, 0, 4, 2, 0, 3, 2, 0, 4, 2, 0, 1, 3, 0, 1, 4, 0, 1, 4, 0, 3, 1, 0, 4, 1, 0, 3, 1, 0, 1, 3, 0, 3, 1, 0, 3, 1, 0, 4, 1, 0, 2, 3, 0, 2, 4, 0, 2, 4, 0, 2, 3, 0, 4, 1, 0, 4, 2, 0, 4, 2, 0, 1, 3, 0, 1, 3, 0, 3, 1, 0, 3, 1, 0, 4, 1, 0, 2, 3, 0, 2, 4, 0, 2, 4, 0, 2, 3, 0, 4, 1, 0, 4, 2, 0, 4, 2, 0, 1, 3, 0]
 
 SED96 = ps_1750484_36_SED_561 + ps_1750484_36_SED_4202 + SED_2
-print(len(SED96))
+#print(len(SED96))
 
 #(4*CORY48, 'CORY48'), (12*yxx24, 'yxx24'),
 # # Commented out 5/10/22
@@ -431,6 +431,10 @@ e = [3, 2, 0, 2, 3, 0, 1, 3, 0, 2, 3, 0, 3, 2, 0, 3, 1, 0, 4, 1, 0, 3, 1, 0, 4, 
 test_SE =  [4,	6	,1,	3,	2,	5,	4,	5,	2,	3,	1,	 6] # in SED action space 
 test_0 = convert(test_SE,'SED','O')
 
+SED_36_cyclic = [4, 5, 4, 2, 0, 2, 1, 3, 1, 7, 6, 7]
+SED_36_cyclic2 = [7, 4, 5, 4, 2, 0, 2, 1, 3, 1, 7, 6]   # Difference is simply cycle 
+SED_36_cyclic = convert(SED_36_cyclic,'SED','O')
+SED_36_cyclic2 = convert(SED_36_cyclic2,'SED','O')
 #test_0 =  [3,1,0,	4,1,0	,1,4,0,	2,4,0,	2,3,0,	3,2,0,	3,1,0,	3,2,0,	2,3,0,	2,4,0,	1,3,0,	 4,1,0] # in primitive action space 
 
 SED24 = i
@@ -453,10 +457,10 @@ folder = '/Users/admin/Desktop/RL Hamiltonian/OwenE'
 #             ],
 #            'all',
 #            show_fig=True, save_fig=False, granular=True, pulse_width=0, folder=folder, name='CB_Best')
-error_plots([(4*test_0, 'test'),(3*CORY48,'CORY48'),
+error_plots([(3*CORY48,'CORY48'),(4*SED_36_cyclic, 'SED_36_cyclic'),(4*SED_36_cyclic2, 'SED_36_cyclic2')
              ],
             'all',
-            show_fig=True, save_fig=False, granular=False, pulse_width=0, folder=folder, name='CB_Best')
+            show_fig=True, save_fig=False, granular=True, pulse_width=2e-5, folder=folder, name='CB_Best')
 
 az_all_err_12 = [
     4, 2, 3, 3, 2, 3, 3, 2, 4, 4, 2, 4
@@ -471,6 +475,9 @@ az_all_err_48 = [
     2, 2, 3, 3, 2, 3, 3, 3, 2, 3, 3, 2,
     1, 4, 4, 1, 4, 4, 4, 2, 2, 4, 2, 2
 ]
+
+
+# do SED blocks commute with error?
 
 # error_plots([(4 * CORY48, 'CORY48'),
 #              (24 * az_all_err_12, 'az12'),
