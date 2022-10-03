@@ -157,7 +157,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
 
         plot1 = plt.figure(1)
         plt.clf()
-        plt.style.use('tableau-colorblind10')
+        plt.style.use("seaborn")  #('tableau-colorblind10')
         for shape, each in enumerate(sequences_rewards):
             plt.plot(rotation_angles, each, linestyle=shapes[shape])
 
@@ -167,7 +167,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
         plt.yticks(fontsize=14)
         plt.xlabel('Fractional Rotation Error (relative to ' + r'$\pi$' + '/2 pulse)', fontsize=14)
         plt.ylabel('Reward', fontsize=14)
-        plt.title("Reward over 288" + r'$\tau$', fontsize=16)
+        plt.title("Reward over 144" + r'$\tau$', fontsize=16)
         plt.legend(labels, fontsize=14)
         if save_fig:
             if name and folder:
@@ -210,7 +210,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
                 # sequences_rewards[idx].append(reward)
         plot2 = plt.figure(2)
         plt.clf()
-        plt.style.use('tableau-colorblind10')
+        plt.style.use('seaborn')
         for shape, each in enumerate(sequences_rewards):
             plt.plot(ptes, each, linestyle=shapes[shape])
 
@@ -219,7 +219,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
         plt.yticks(fontsize=12)
         plt.xlabel('Fractional Phase transient error (relative to ' + r'$\pi$' + '/2 pulse)', fontsize=12)
         plt.ylabel('Reward', fontsize=12)
-        plt.title("Reward over 288" + r'$\tau$', fontsize=14)
+        plt.title("Reward over 144" + r'$\tau$', fontsize=14)
         plt.legend(labels, fontsize=12)
         if save_fig:
             if name and folder:
@@ -258,7 +258,7 @@ def error_plots(pulse_sequences, error_type, name=None, show_fig=False, save_fig
 
         plot3 = plt.figure(3)       # To see all of the figures at once
         plt.clf()
-        plt.style.use('tableau-colorblind10')
+        plt.style.use('seaborn')
         lines = []      # To remove lines when comparing to standards
         for shape, each in enumerate(sequences_rewards):
             lines.append(plt.plot(offset_errors, each, linestyle=shapes[shape]))
@@ -337,29 +337,6 @@ comp = [2, 4, 0, 2, 3, 0, 2, 3, 0, 4, 2, 0, 3, 2, 0, 4, 2, 0, 1, 3, 0, 1, 4, 0, 
 SED96 = ps_1750484_36_SED_561 + ps_1750484_36_SED_4202 + SED_2
 #print(len(SED96))
 
-#(4*CORY48, 'CORY48'), (12*yxx24, 'yxx24'),
-# # Commented out 5/10/22
-# error_plots([(4*CORY48, 'CORY48'), (12*yxx24, 'yxx24'), (8*ps_1678985_36_SED_2167, '1678985_36_SED_2167'),
-#              (4*SED48, 'SED48')], 'all',
-#             show_fig=True, save_fig=False, granular=True, pulse_width=0)
-
-# error_plots([(4*CORY48, 'CORY48'), (4*SED_2, 'SED_2'),
-#              (4 * (ps_1750484_36_SED_561 + ps_1750484_36_SED_4202), 'Both'),
-#              (2*comp, 'SED48'),
-#              (2 * (ps_1750484_36_SED_561 + ps_1750484_36_SED_4202 + SED_2), 'All 3')], 'all',
-#             show_fig=True, save_fig=False, granular=True, pulse_width=0)
-
-# error_plots([(4*CORY48, 'CORY48'), (4*SED_2, 'SED48_2'), (4*SED48, 'SED48'),
-#              (2 * (ps_1750484_36_SED_561 + ps_1750484_36_SED_4202 + SED_2), '3x Combo')], 'all',
-#             show_fig=True, save_fig=False, granular=True, pulse_width=0)
-
-# error_plots([(3*CORY48, 'CORY48'), (9*yxx24, 'yxx24'), (2*(ps_1678985_36_SED_2167+SED_2), 'Both'),
-#              (6 * ps_1678985_36_SED_2167, 'ps_1678985_36_SED_2167'),
-#              (3 * SED_2, 'SED_2'), (3 * SED48, 'SED48')],
-#             'all',
-#             show_fig=True, save_fig=False, granular=True, pulse_width=0)
-
-# PTE 0.01 > 6 (5/10/22)
 a = [3, 1, 0, 1, 3, 0, 2, 3, 0, 1, 3, 0, 2, 3, 0, 4, 1, 0, 4, 2, 0, 2, 4, 0, 2, 3, 0, 1, 3, 0, 4, 2, 0, 1, 4, 0, 4, 1, 0, 2, 4, 0, 2, 4, 0, 1, 4, 0, 4, 2, 0, 3, 1, 0, 3, 1, 0, 3, 2, 0, 3, 2, 0, 1, 4, 0, 3, 2, 0, 4, 1, 0]
 b = [4, 1, 0, 2, 4, 0, 4, 1, 0, 2, 4, 0, 1, 3, 0, 1, 4, 0, 3, 2, 0, 4, 1, 0, 4, 2, 0, 1, 3, 0, 2, 4, 0, 1, 3, 0, 1, 4, 0, 2, 3, 0, 3, 2, 0, 1, 4, 0, 2, 3, 0, 4, 2, 0, 3, 1, 0, 3, 2, 0, 4, 2, 0, 2, 3, 0, 3, 1, 0, 3, 1, 0]
 c = [3, 2, 0, 4, 2, 0, 4, 1, 0, 2, 3, 0, 1, 4, 0, 1, 4, 0, 2, 4, 0, 4, 1, 0, 3, 2, 0, 3, 2, 0, 1, 3, 0, 2, 3, 0, 2, 3, 0, 1, 3, 0, 2, 3, 0, 1, 3, 0, 1, 4, 0, 3, 1, 0, 4, 2, 0, 4, 2, 0, 3, 1, 0, 3, 1, 0, 4, 1, 0, 2, 4, 0]
@@ -437,8 +414,14 @@ SED_36_cyclic = convert(SED_36_cyclic,'SED','O')
 SED_36_cyclic2 = convert(SED_36_cyclic2,'SED','O')
 #test_0 =  [3,1,0,	4,1,0	,1,4,0,	2,4,0,	2,3,0,	3,2,0,	3,1,0,	3,2,0,	2,3,0,	2,4,0,	1,3,0,	 4,1,0] # in primitive action space 
 
+SED_36_1cycle_longPW = [7, 1, 3, 1, 2, 0, 2, 5, 6, 4, 6, 5]
+SED_36_1cycle_longPW = convert(SED_36_1cycle_longPW,'SED','O')
+test = [0, 1, 5, 4, 5, 2, 0, 2, 6, 4, 6, 1]
+test = convert(test,'SED','O')
+test = [7, 1, 3, 1, 7, 6, 4, 2, 0, 2, 4, 5]#[1,0,1,5,4,5,2,0,2,6,4,6]
+test = convert(test,'SED','O')
 SED24 = i
-
+test2 = [7, 1, 3, 1, 7, 6, 4, 2, 0, 2, 4, 5]
 #print(len(4*CORY48), len(12*yxx24), len(8*SED24), len(4*SED48), len(2*SED96))
 #print(SED24)
 #print(SED48)
@@ -457,10 +440,10 @@ folder = '/Users/admin/Desktop/RL Hamiltonian/OwenE'
 #             ],
 #            'all',
 #            show_fig=True, save_fig=False, granular=True, pulse_width=0, folder=folder, name='CB_Best')
-error_plots([(3*CORY48,'CORY48'),(4*SED_36_cyclic, 'SED_36_cyclic'),(4*SED_36_cyclic2, 'SED_36_cyclic2')
+error_plots([(3*CORY48,'CORY48'),(4*SED_36_cyclic, 'SED_36_cyclic'),(test,'SED_36_1cycle_longPW')   #,(4*SED_36_1cycle_longPW,'SED_36_1cycle_longPW')
              ],
             'all',
-            show_fig=True, save_fig=False, granular=True, pulse_width=2e-5, folder=folder, name='CB_Best')
+            show_fig=True, save_fig=False, granular=False, pulse_width=2e-5, folder=folder, name='CB_Best')
 
 az_all_err_12 = [
     4, 2, 3, 3, 2, 3, 3, 2, 4, 4, 2, 4
@@ -478,11 +461,3 @@ az_all_err_48 = [
 
 
 # do SED blocks commute with error?
-
-# error_plots([(4 * CORY48, 'CORY48'),
-#              (24 * az_all_err_12, 'az12'),
-#              (12 * az_all_err_24, 'az24'),
-#              (6 * az_all_err_48, 'az48')
-#              ],
-#             'all',
-#             show_fig=False, save_fig=True, granular=False, pulse_width=0, folder=folder, name='CB_Orig')

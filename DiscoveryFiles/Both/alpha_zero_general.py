@@ -307,6 +307,7 @@ def evaluate(node, ps_config, network=None, sequence_funcs=None):
     the network, add children to node, and return value.
     """
     sequence_tuple = tuple(ps_config.sequence)
+    print(sequence_tuple) # For testing 
     if sequence_funcs is not None:
         get_frame, get_reward, get_valid_pulses, get_inference = sequence_funcs
     else:

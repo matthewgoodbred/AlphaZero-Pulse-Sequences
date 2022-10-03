@@ -24,19 +24,19 @@ import pulse_sequences_general as ps     # TODO
 
 collect_no_net_procs = 0
 collect_no_net_count = 0
-collect_procs = 14                       # TODO
+collect_procs = 2                       # 14 for Discovery, 2/3 for laptop
 
 buffer_size = int(1e6)
 batch_size = 2048   #2048
-num_iters = int(1e5)
+num_iters = int(1e5) # 1e5
 
-max_sequence_length = 48
+max_sequence_length = 36
 
 print_every = 100
 save_every = 100
 write_every = 100   # Write count_dict and reward_dict to files every x iterations (usually int(1e4))
 
-reward_threshold = 4		# Something to consider upping/lowering depending on run (originally 3)
+reward_threshold = 3		# Something to consider upping/lowering depending on run (originally 3)
 
 dipolar_strength = 1e2		# Something to consider changing
 pulse_width = 2e-5 #2e-5  #change pulse width vs delay 
@@ -95,7 +95,7 @@ def collect_data(proc_num, queue, net, ps_count, global_step, lock, pulse_list):
         output, out_info = az.make_sequence(config, ps_config, network=net,
                                   rng=ps_config.rng, enforce_aht_0=False,
                                   max_difference=2) #, refocus_every=6		# For now, no constraints!
-
+        
         reward = out_info[-1]  # This value is not rounded; to be used in histogram
 
         rewards_plot.append(reward)
@@ -168,7 +168,7 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
     if not os.path.exists(start_time):
         os.makedirs(start_time)
     writer = SummaryWriter(start_time)
-    net_optimizer = optim.Adam(net.parameters(),)
+    net_optimizer = optim.Adam(net.parameters())
     # learning rate scheduler 
     scheduler = optim.lr_scheduler.OneCycleLR(net_optimizer,max_lr=1e-2,total_steps=num_iters,div_factor=10)
 
@@ -300,7 +300,7 @@ def train_process(queue, net, global_step, ps_count, lock, pulse_list,
         writer.add_scalar('total_loss',
                           loss, global_step=global_step.value)
         writer.add_scalar('learning_rate',
-                          net_optimizer.lr, global_step=global_step.value)
+                          scheduler.get_last_lr()[0], global_step=global_step.value)
         if i % print_every == 0:
             print(datetime.now(), f'updated network (iteration {i})',
                   f'pulse_sequence_count: {ps_count.value}')
@@ -322,7 +322,7 @@ if __name__ == '__main__':
         global_step = manager.Value('i', 0)
         ps_count = manager.Value('i', 0)
         lock = manager.Lock()
-
+        print(pulse_list)
         # # New: This is to reproduce figure 4.1 from Will's thesis. If needed, add average_rewards as a parameter
         # # to collect data and uncomment relevant lines in that function
         # average_rewards = manager.list()
