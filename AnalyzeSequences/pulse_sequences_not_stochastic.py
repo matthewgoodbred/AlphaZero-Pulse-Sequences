@@ -123,7 +123,7 @@ def get_collective_spin(N):
 # pulses, pulse names, and corresponding rotations
 
 
-def get_pulses(Hsys, X, Y, Z, pulse_list, pulse_width=1e-4, delay=1e-3,
+def get_pulses(Hsys, X, Y, Z, pulse_list, pulse_width=1e-4, tau=1e-3,
                rot_error=0, phase_transient=0):
     """
     Args:
@@ -147,20 +147,30 @@ def get_pulses(Hsys, X, Y, Z, pulse_list, pulse_width=1e-4, delay=1e-3,
     """
     # TODO: Is this slightly off? As in, is the total time spent on each pulse > tau?
     # TODO: Need to subtract phase transient time from the main propagator?
-    Delay = qt.propagator(Hsys, pulse_width)
-    X_pulse = qt.propagator(Y, np.pi / 2 * phase_transient) * \
-              qt.propagator(X * (1 + rot_error) + Hsys * pulse_width / (np.pi / 2), np.pi / 2) * \
-              qt.propagator(Y, np.pi / 2 * phase_transient)
-    Xbar_pulse = qt.propagator(-X, np.pi / 2 * phase_transient) * \
-                 qt.propagator(-X * (1 + rot_error) + Hsys * pulse_width / (np.pi / 2), np.pi / 2) * \
-                 qt.propagator(-X, np.pi / 2 * phase_transient)
-    Y_pulse = qt.propagator(-Y, np.pi / 2 * phase_transient) * \
-              qt.propagator(Y * (1 + rot_error) + Hsys * pulse_width / (np.pi / 2), np.pi / 2) * \
-              qt.propagator(-Y, np.pi / 2 * phase_transient)
-    Ybar_pulse = qt.propagator(X, np.pi / 2 * phase_transient) * \
-                 qt.propagator(-Y * (1 + rot_error) + Hsys * pulse_width / (np.pi / 2), np.pi / 2) * \
-                 qt.propagator(X, np.pi / 2 * phase_transient)
-    delay_propagator = qt.propagator(Hsys, delay)  # Equivalent to tau
+    delay = tau - pulse_width
+    H_X = (X*np.pi / 2 / pulse_width)*(1+rot_error) + Hsys
+    H_Y = (Y*np.pi / 2 / pulse_width)*(1+rot_error) + Hsys
+    H_Xbar = (-X*np.pi / 2 / pulse_width)*(1+rot_error) + Hsys
+    H_Ybar = (-Y*np.pi / 2 / pulse_width)*(1+rot_error) + Hsys
+
+    # PULSES ARE SET TO BE AT THE START OF THE TAU-SIZED WINDOW
+    X_pulse = qt.propagator(Hsys,delay)*\
+        qt.propagator(Y,np.pi/2*phase_transient) * \
+        qt.propagator(H_X, pulse_width) * \
+        qt.propagator(Y,np.pi/2*phase_transient)
+    Xbar_pulse = qt.propagator(Hsys,delay)*\
+        qt.propagator(-X,np.pi/2*phase_transient)*\
+        qt.propagator(H_Xbar, pulse_width)*\
+        qt.propagator(-X,np.pi/2*phase_transient)
+    Y_pulse = qt.propagator(Hsys,delay)*\
+        qt.propagator(-Y,np.pi/2*phase_transient)*\
+        qt.propagator(H_Y, pulse_width)*\
+        qt.propagator(-Y,np.pi/2*phase_transient)
+    Ybar_pulse = qt.propagator(Hsys,delay)*\
+        qt.propagator(X,np.pi/2*phase_transient)*\
+        qt.propagator(H_Ybar, pulse_width)*\
+        qt.propagator(X,np.pi/2*phase_transient)
+    Delay_pulse = qt.propagator(Hsys,tau)
 
     pulses = []  # List of action space. Elements are PulseInfo objects (pulse = qutip representation, length in tau)
     for pulse_name in pulse_list:
@@ -174,19 +184,19 @@ def get_pulses(Hsys, X, Y, Z, pulse_list, pulse_width=1e-4, delay=1e-3,
             pulse_length += 1
             if subpulse == 'D':
                 string_name += 'D'
-                pulse = delay_propagator * Delay * pulse
+                pulse = Delay_pulse * pulse
             if subpulse == 'X':
                 string_name += 'X'
-                pulse = delay_propagator * X_pulse * pulse
+                pulse = X_pulse * pulse
             if subpulse == '-X':
                 string_name += '-X'
-                pulse = delay_propagator * Xbar_pulse * pulse
+                pulse = Xbar_pulse * pulse
             if subpulse == 'Y':
                 string_name += 'Y'
-                pulse = delay_propagator * Y_pulse * pulse
+                pulse = Y_pulse * pulse
             if subpulse == '-Y':
                 string_name += '-Y'
-                pulse = delay_propagator * Ybar_pulse * pulse
+                pulse = Ybar_pulse * pulse
         pulses.append(PulseInfo(name=string_name, length=pulse_length, pulse=pulse))
 
     return pulses       # Return a list of PulseInfo objects
@@ -471,7 +481,7 @@ class PulseSequenceConfig(object):
                     pt = phase_transient_error
                 if save_name is not None:
                     rots.append(rot)
-                pulse_ensemble = get_pulses(H, X, Y, Z, pulse_list=pulse_list, pulse_width=pulse_width, delay=delay,
+                pulse_ensemble = get_pulses(H, X, Y, Z, pulse_list=pulse_list, pulse_width=pulse_width, tau=delay,
                                             rot_error=rot, phase_transient=pt)
                 for pulse in pulse_ensemble:
                     pulse.update_ensemble_number(idx+1)
