@@ -336,7 +336,7 @@ def evaluate(node, ps_config, network=None, sequence_funcs=None):
         else:
             # no valid pulses to continue sequence,
             # want to avoid this node in the future
-            value = -1
+            value = -1   #problem for yxx
     return value
 
 
@@ -503,37 +503,38 @@ def make_sequence(config, ps_config, network=None, rng=None, test=False,
             sequence (tuple): Pulse sequence
         """
         valid_pulses = []
-
+        valid_pulses = range(len(ps_config.pulses_ensemble[0]))
         # Test for all possible children: 0: delay, 1: X, 2: Xbar, 3: Y, 4: Ybar (in default action space)
-        for pulse_index in range(len(ps_config.pulses_ensemble[0])):
+        #for pulse_index in range(len(ps_config.pulses_ensemble[0])):
             # count whether there are equal numbers of each pulse (not including delays)
-            if ps_config.sequence_length > 0:
+        #    if ps_config.sequence_length > 0:
                 # Number of delays (pulse = 0) in sequence (TODO: Change if delay is not first in action space)
-                delays_applied = (np.array(sequence) == 0).sum() * ps_config.pulses_ensemble[0][0].get_length()
-                pulse_total = (np.array(sequence) == pulse_index).sum()     # Total number of pulse_index pulses
+        #        delays_applied = (np.array(sequence) == 0).sum() * ps_config.pulses_ensemble[0][0].get_length()
+        #        pulse_total = (np.array(sequence) == pulse_index).sum()     # Total number of pulse_index pulses
                 # TODO: This line needs to be changed if more than one type of delay is in the action space
-                if pulse_total >= (ps_config.max_sequence_length - delays_applied) / \
-                        ((ps_config.num_pulses - 1)*(ps_config.pulses_ensemble[0][pulse].get_length())):
-                    continue
+                # Check this line 
+        #        if pulse_total >= (ps_config.max_sequence_length - delays_applied) / \
+        #                ((ps_config.num_pulses - 1)*(ps_config.pulses_ensemble[0][pulse].get_length())):
+        #            continue
             # AHT constraints
             # commented out the .copy() below, I don't think this should break anything...
             # Get axis counts (±x, ±y, ±z) for the sequence with the added pulse = pulse_index
-            counts = get_axis_counts(sequence + (pulse_index,)) #.copy()
-            if enforce_aht_0:
-                if not (counts <= ps_config.max_sequence_length / 6).all():
-                    continue
+        #    counts = get_axis_counts(sequence + (pulse_index,)) #.copy()
+        #    if enforce_aht_0:
+        #        if not (counts <= ps_config.max_sequence_length / 6).all():
+        #            continue
             # axis counts on ±x, ±y, ±z axes
-            pm_counts = np.array([counts[0] + counts[3],
-                                  counts[1] + counts[4],
-                                  counts[2] + counts[5]])
-            diff = np.max(pm_counts) - np.min(pm_counts)
-            if diff > max_difference:       # Makes sure interactions are refocused every 6 * max_difference tau
-                continue
-            max_count = (np.ceil((ps_config.sequence_length + 1) / refocus_every)
-                         * refocus_every)
+        #    pm_counts = np.array([counts[0] + counts[3],
+        #                          counts[1] + counts[4],
+        #                          counts[2] + counts[5]])
+        #    diff = np.max(pm_counts) - np.min(pm_counts)
+        #    if diff > max_difference:       # Makes sure interactions are refocused every 6 * max_difference tau
+        #        continue
+        #    max_count = (np.ceil((ps_config.sequence_length + 1) / refocus_every)
+        #                 * refocus_every)
 
-            if (counts <= max_count / 6).all():     # Add the pulse if it hasn't spent too much time on any one axis
-                valid_pulses.append(pulse_index)
+        #    if (counts <= max_count / 6).all():     # Add the pulse if it hasn't spent too much time on any one axis
+        #        valid_pulses.append(pulse_index)
         return valid_pulses
     
     @lru_cache(maxsize=cache_size)
